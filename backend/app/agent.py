@@ -10,11 +10,11 @@ from app.settings import settings
 
 logger = get_logger(__name__)
 
-os.environ["OPENAI_API_KEY"] = settings.openrouter_api_key
-os.environ["OPENAI_BASE_URL"] = settings.openrouter_base_url
+# Set Gemini API key in environment
+os.environ["GEMINI_API_KEY"] = settings.gemini_api_key
 
 agent = Agent(
-    f"openai:{settings.openrouter_model}",
+    "gemini-2.0-flash-exp",
     output_type=ParseResult,
     system_prompt="""Parse unstructured text into structured data.
 
@@ -71,7 +71,7 @@ Correct the errors and retry."""
             processing_time_ms = int((time.time() - start_time) * 1000)
             validated_result.meta["input_length"] = len(input_data.raw_text)
             validated_result.meta["retry_count"] = attempt - 1
-            validated_result.meta["model"] = settings.openrouter_model
+            validated_result.meta["model"] = settings.gemini_model
             validated_result.meta["processing_time_ms"] = processing_time_ms
 
             return validated_result

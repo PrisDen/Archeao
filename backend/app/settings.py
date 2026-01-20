@@ -15,9 +15,8 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     cors_allowed_origin: str = "http://localhost:3000"
 
-    openrouter_api_key: str
-    openrouter_model: str = "anthropic/claude-3.5-sonnet"
-    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    gemini_api_key: str
+    gemini_model: str = "gemini-2.0-flash-exp"
 
     max_retries: int = 2
 
