@@ -31,7 +31,15 @@ export default function Home() {
       setResult(parsed);
       setState("success");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      if (err instanceof Error) {
+        if (err.message.includes("fetch") || err.message.includes("network")) {
+          setError("Cannot connect to backend. Please ensure the server is running at http://localhost:8000");
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
       setState("error");
     }
   };

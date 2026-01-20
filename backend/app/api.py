@@ -15,8 +15,8 @@ class HealthResponse(BaseModel):
 
 
 class ErrorResponse(BaseModel):
-    error: str
-    message: str
+    error_code: str
+    user_message: str
     retry_count: int
 
 
@@ -49,18 +49,33 @@ async def parse_transcript(request: ParseInput) -> ParseResult:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
-                "error": "MODEL_OUTPUT_INVALID",
-                "message": "The agent failed to produce valid structured output.",
+                "error_code": "MODEL_OUTPUT_INVALID",
+                "user_message": "LLM unavailable or parsing failed",
                 "retry_count": retry_count,
             },
         )
     except Exception as e:
+        error_str = str(e).lower()
         logger.error(f"Error processing transcript: {str(e)}", exc_info=True)
+        
+        if "api" in error_str and ("key" in error_str or "auth" in error_str or "401" in error_str):
+            error_code = "INVALID_API_KEY"
+            user_message = "Invalid or missing LLM API key"
+        elif "429" in error_str or "quota" in error_str or "rate" in error_str or "limit" in error_str:
+            error_code = "RATE_LIMIT_EXCEEDED"
+            user_message = "LLM quota or rate limit exceeded"
+        elif "token" in error_str and ("limit" in error_str or "exceed" in error_str or "too long" in error_str):
+            error_code = "TOKEN_LIMIT_EXCEEDED"
+            user_message = "Input exceeds model token limit"
+        else:
+            error_code = "PROCESSING_FAILED"
+            user_message = "LLM unavailable or parsing failed"
+        
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
-                "error": "PROCESSING_FAILED",
-                "message": "An unexpected error occurred during processing.",
+                "error_code": error_code,
+                "user_message": user_message,
                 "retry_count": 0,
             },
         )
